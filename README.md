@@ -32,7 +32,7 @@ Código organizado por módulo, cada uno con `models`, `views`, `controllers` y 
 | **Repository** | Interfaces + implementaciones `*RepositorySQL` | En uso; el acceso a datos queda fuera de los controladores |
 | **Singleton** | `DatabaseConnection`, `SesionUsuario` | En uso |
 | **Factory** | `NotificacionFactory`, `CategoriaClienteFactory` | En uso en los controladores de reclamos y categorías |
-| **Strategy** | `DescuentoStrategy` (porcentaje, monto fijo) | Implementado, **pero aún no conectado al flujo de venta** (la venta guarda descuento 0) |
+| **Strategy** | `DescuentoStrategy` (porcentaje, monto fijo) | Implementado y con pruebas unitarias, **pero aún no conectado al flujo de venta** (la venta guarda descuento 0) |
 | **Observer (ventas)** | `NotificadorVentas` | Implementado, **sin usar todavía** |
 
 ## Cómo ejecutarlo
@@ -59,6 +59,15 @@ Ejecútalo siempre desde la raíz del proyecto: `config.properties` se busca en 
 En VS Code basta con instalar *Extension Pack for Java*, abrir la carpeta y usar la terminal integrada
 con el comando de arriba, o el botón *Run* sobre `Main.java`.
 
+## Pruebas
+
+```bash
+./mvnw test
+```
+
+Hay pruebas JUnit 6 para las estrategias de descuento y para `PasswordHasher`. El resto del
+sistema (vistas, repositorios, controladores) no tiene pruebas automáticas.
+
 ## Mejoras posteriores
 
 Hechas después del curso, un commit por cambio:
@@ -74,6 +83,7 @@ Hechas después del curso, un commit por cambio:
 - **`schema.sql`:** el repositorio no traía el esquema. Se dedujo de las consultas SQL de los
   repositorios e incluye datos de prueba.
 - **Maven:** migración a estructura estándar `src/main/java` con `pom.xml` y Maven Wrapper.
+- **Pruebas unitarias** con JUnit para los descuentos y el hash de contraseñas.
 
 ## Limitaciones conocidas
 
