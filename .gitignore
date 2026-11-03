@@ -33,3 +33,5 @@ bin/
 .claude/
 .cursor/
 CLAUDE.md
+### Maven ###
+target/
