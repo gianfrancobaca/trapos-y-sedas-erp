@@ -35,3 +35,6 @@ bin/
 CLAUDE.md
 ### Maven ###
 target/
+
+### Credenciales locales ###
+config.properties
