@@ -101,8 +101,17 @@ public class VentaRepositorySQL implements VentaRepository {
 
     @Override
     public void guardar(Venta venta) {
+        try {
+            guardar(venta, conn);
+        } catch (SQLException e) {
+            System.err.println("[VentaRepo] guardar: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void guardar(Venta venta, Connection conexion) throws SQLException {
         String sql = "INSERT INTO ventas (cliente_id, vendedor_id, fecha_hora, estado, metodo_pago, subtotal, descuento, igv, total, observaciones) VALUES (?,?,?,?,?,?,?,?,?,?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, venta.getClienteId());
             ps.setInt(2, venta.getVendedorId());
             ps.setTimestamp(3, Timestamp.valueOf(venta.getFechaHora()));
@@ -114,10 +123,9 @@ public class VentaRepositorySQL implements VentaRepository {
             ps.setDouble(9, venta.getTotal());
             ps.setString(10, venta.getObservaciones());
             ps.executeUpdate();
-            ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) venta.setId(keys.getInt(1));
-        } catch (SQLException e) {
-            System.err.println("[VentaRepo] guardar: " + e.getMessage());
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) venta.setId(keys.getInt(1));
+            }
         }
     }
 

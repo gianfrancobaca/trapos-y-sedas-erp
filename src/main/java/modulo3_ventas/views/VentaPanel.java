@@ -4,6 +4,7 @@ import core.Model;
 import core.View;
 import modulo3_ventas.controllers.ProductoController;
 import modulo3_ventas.controllers.VentaController;
+import modulo3_ventas.exceptions.RegistroVentaException;
 import modulo3_ventas.models.DetalleVenta;
 import modulo3_ventas.models.Producto;
 import modulo3_ventas.models.Venta;
@@ -144,6 +145,8 @@ public class VentaPanel extends JPanel implements View {
             JOptionPane.showMessageDialog(this, "Venta registrada. Total: S/ " + String.format("%.2f", total));
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "ID y cantidad deben ser numericos.");
+        } catch (RegistroVentaException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

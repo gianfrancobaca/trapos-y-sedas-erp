@@ -69,8 +69,17 @@ public class DetalleVentaRepositorySQL implements DetalleVentaRepository {
 
     @Override
     public void guardar(DetalleVenta detalle) {
+        try {
+            guardar(detalle, conn);
+        } catch (SQLException e) {
+            System.err.println("[DetalleVentaRepo] guardar: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void guardar(DetalleVenta detalle, Connection conexion) throws SQLException {
         String sql = "INSERT INTO detalle_ventas (venta_id, producto_id, producto_nombre, cantidad, precio_unitario, descuento_linea, subtotal) VALUES (?,?,?,?,?,?,?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, detalle.getVentaId());
             ps.setInt(2, detalle.getProductoId());
             ps.setString(3, detalle.getProductoNombre());
@@ -79,10 +88,9 @@ public class DetalleVentaRepositorySQL implements DetalleVentaRepository {
             ps.setDouble(6, detalle.getDescuentoLinea());
             ps.setDouble(7, detalle.getSubtotal());
             ps.executeUpdate();
-            ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) detalle.setId(keys.getInt(1));
-        } catch (SQLException e) {
-            System.err.println("[DetalleVentaRepo] guardar: " + e.getMessage());
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) detalle.setId(keys.getInt(1));
+            }
         }
     }
 
