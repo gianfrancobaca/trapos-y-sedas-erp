@@ -1,8 +1,12 @@
 package modulo3_ventas.controllers;
 
 import core.Controller;
+import database.DatabaseConnection;
+import modulo3_ventas.exceptions.RegistroVentaException;
 import modulo3_ventas.models.*;
 import modulo3_ventas.repositories.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -45,11 +49,47 @@ public class VentaController extends Controller {
         return detalleRepo.buscarPorVenta(ventaId);
     }
 
+    /**
+     * Registra la venta y todos sus detalles en una sola transacción:
+     * o se guardan todos, o no se guarda ninguno.
+     *
+     * @throws RegistroVentaException si algún insert falla (se hace rollback)
+     */
     public void registrarVenta(Venta venta, List<DetalleVenta> detalles) {
-        ventaRepo.guardar(venta);
-        for (DetalleVenta detalle : detalles) {
-            detalle.setVentaId(venta.getId());
-            detalleRepo.guardar(detalle);
+        if (detalles == null || detalles.isEmpty()) {
+            throw new IllegalArgumentException("La venta debe tener al menos un detalle.");
+        }
+
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try {
+            conn.setAutoCommit(false);
+            try {
+                ventaRepo.guardar(venta, conn);
+                if (venta.getId() == 0) {
+                    throw new SQLException("La base de datos no devolvió el id de la venta.");
+                }
+                for (DetalleVenta detalle : detalles) {
+                    detalle.setVentaId(venta.getId());
+                    detalleRepo.guardar(detalle, conn);
+                }
+                conn.commit();
+            } catch (SQLException | RuntimeException e) {
+                venta.setId(0); // el id generado quedó invalidado por el rollback
+                rollbackSilencioso(conn);
+                throw new RegistroVentaException("No se pudo registrar la venta; se revirtieron los cambios.", e);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RegistroVentaException("Error de conexión al registrar la venta.", e);
+        }
+    }
+
+    private void rollbackSilencioso(Connection conn) {
+        try {
+            conn.rollback();
+        } catch (SQLException e) {
+            System.err.println("[VentaController] rollback falló: " + e.getMessage());
         }
     }
 

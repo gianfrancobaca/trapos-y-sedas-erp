@@ -110,4 +110,32 @@ public class UsuarioRepository {
         }
         return null;
     }
+
+    /** Devuelve el hash BCrypt guardado para el username, o null si no existe. */
+    public String obtenerHashPorUsername(String username) {
+        String sql = "SELECT password FROM credencial WHERE username=?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("password");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /** Guarda una credencial. {@code hash} debe venir ya hasheado con PasswordHasher. */
+    public void guardarCredencial(int idUsuario, String username, String hash) {
+        String sql = "INSERT INTO credencial (username, password, id_usuario) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, hash);
+            ps.setInt(3, idUsuario);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
